@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Dashboard - College System{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>Welcome, {{ user.get_full_name }}</h2>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Active Elections</h5>
+                {% if active_elections %}
+                    <ul class="list-group">
+                    {% for election in active_elections %}
+                        <li class="list-group-item">
+                            <a href="{% url 'elections:detail' election.id %}">
+                                {{ election.title }}
+                            </a>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No active elections</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">My Facility Bookings</h5>
+                {% if user_bookings %}
+                    <ul class="list-group">
+                    {% for booking in user_bookings %}
+                        <li class="list-group-item">
+                            {{ booking.facility.name }} - {{ booking.start_time|date }}
+                            <span class="badge bg-{{ booking.status }}">{{ booking.status }}</span>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No active bookings</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Recent Complaints</h5>
+                {% if recent_complaints %}
+                    <ul class="list-group">
+                    {% for complaint in recent_complaints %}
+                        <li class="list-group-item">
+                            <a href="{% url 'complaints:detail' complaint.id %}">
+                                {{ complaint.title }}
+                            </a>
+                            <span class="badge bg-{{ complaint.status }}">{{ complaint.status }}</span>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                {% else %}
+                    <p>No recent complaints</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

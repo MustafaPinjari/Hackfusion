@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}Facilities{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Available Facilities</h2>
+    </div>
+    {% for facility in facilities %}
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            {% if facility.image %}
+            <img src="{{ facility.image.url }}" class="card-img-top" alt="{{ facility.name }}">
+            {% endif %}
+            <div class="card-body">
+                <h5 class="card-title">{{ facility.name }}</h5>
+                <p class="card-text">{{ facility.description }}</p>
+                <p>Capacity: {{ facility.capacity }} people</p>
+                <a href="{% url 'facilities:book' facility.id %}" class="btn btn-primary">Book Now</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
