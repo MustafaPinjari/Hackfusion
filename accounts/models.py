@@ -48,6 +48,9 @@ class User(AbstractUser):
         verbose_name='user permissions',
     )
 
+    health_requests = models.TextField(blank=True)  # Field to store health requests
+    leave_requests = models.TextField(blank=True)    # Field to store leave requests
+
     def __str__(self):
         return f"{self.username} - {self.role}"
 

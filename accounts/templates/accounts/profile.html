@@ -8,16 +8,16 @@
 <div class="container mt-4">
     <div class="row">
         <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-body">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body text-center">
                     {% if user.profile_picture %}
-                        <img src="{{ user.profile_picture.url }}" class="img-fluid rounded-circle mb-3" alt="Profile Picture">
+                        <img src="{{ user.profile_picture.url }}" class="img-fluid rounded-circle mb-3" alt="Profile Picture" style="width: 150px; height: 150px;">
                     {% endif %}
-                    <h3>{{ user.get_full_name }}</h3>
+                    <h3 class="font-weight-bold">{{ user.get_full_name }}</h3>
                     <p class="text-muted">{{ user.get_role_display }} - {{ user.get_department_display }}</p>
                     
                     {% if user.bio %}
-                        <p>{{ user.bio }}</p>
+                        <p class="text-muted">{{ user.bio }}</p>
                     {% endif %}
                     
                     <div class="mt-3">
@@ -33,10 +33,10 @@
                         <div class="mt-3">
                             <h5>Social Links</h5>
                             {% if user.linkedin_profile %}
-                                <a href="{{ user.linkedin_profile }}" class="btn btn-primary btn-sm" target="_blank">LinkedIn</a>
+                                <a href="{{ user.linkedin_profile }}" class="btn btn-primary btn-sm" target="_blank"><i class="fab fa-linkedin"></i> LinkedIn</a>
                             {% endif %}
                             {% if user.github_profile %}
-                                <a href="{{ user.github_profile }}" class="btn btn-dark btn-sm" target="_blank">GitHub</a>
+                                <a href="{{ user.github_profile }}" class="btn btn-dark btn-sm" target="_blank"><i class="fab fa-github"></i> GitHub</a>
                             {% endif %}
                         </div>
                     {% endif %}
@@ -45,7 +45,7 @@
                         <div class="mt-4">
                             <h5>Election Participation</h5>
                             <a href="{% url 'elections:list' %}" class="btn btn-primary btn-block w-100">
-                                Apply for Elections
+                                <i class="fas fa-vote-yea"></i> Apply for Elections
                             </a>
                         </div>
                     {% endif %}
@@ -54,7 +54,7 @@
 
             <!-- Election Nominations Section -->
             {% if user.role == 'student' %}
-            <div class="card mb-4">
+            <div class="card mb-4 shadow-sm">
                 <div class="card-body">
                     <h5 class="card-title">Election Nominations</h5>
                     {% if active_elections %}
@@ -84,7 +84,7 @@
         </div>
         
         <div class="col-md-8">
-            <div class="card mb-4">
+            <div class="card mb-4 shadow-sm">
                 <div class="card-body">
                     <h4>Update Profile</h4>
                     <form method="post" enctype="multipart/form-data">
@@ -95,8 +95,58 @@
                 </div>
             </div>
 
+            <!-- Health Request Section -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <h4>Submit Health Request</h4>
+                    <form method="post" action="{% url 'accounts:submit_health_request' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="health_request" class="form-label">Health Request Details</label>
+                            <textarea class="form-control" id="health_request" name="health_request" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="health_proof" class="form-label">Upload Proof (max 2MB)</label>
+                            <input type="file" class="form-control" id="health_proof" name="health_proof" accept="image/*,application/pdf" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit Health Request</button>
+                    </form>
+                    <h5 class="mt-4">My Health Requests</h5>
+                    {% if user.health_requests %}
+                        <p>{{ user.health_requests }}</p>
+                    {% else %}
+                        <p>No health requests submitted yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Leave Request Section -->
+            <div class="card mb-4 shadow-sm">
+                <div class="card-body">
+                    <h4>Submit Leave Request</h4>
+                    <form method="post" action="{% url 'accounts:submit_leave_request' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="leave_request" class="form-label">Leave Request Details</label>
+                            <textarea class="form-control" id="leave_request" name="leave_request" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="leave_proof" class="form-label">Upload Proof (max 2MB)</label>
+                            <input type="file" class="form-control" id="leave_proof" name="leave_proof" accept="image/*,application/pdf" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit Leave Request</button>
+                    </form>
+                    <h5 class="mt-4">My Leave Requests</h5>
+                    {% if user.leave_requests %}
+                        <p>{{ user.leave_requests }}</p>
+                    {% else %}
+                        <p>No leave requests submitted yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+
             <!-- Complaints Section -->
-            <div class="card mb-4">
+            <div class="card mb-4 shadow-sm">
                 <div class="card-body">
                     <h4>My Complaints</h4>
                     <form method="post" action="{% url 'complaints:submit_complaint' %}">
@@ -117,11 +167,15 @@
                     </form>
 
                     <h5 class="mt-4">Recent Complaints</h5>
-                    {% if user.complaints.all %}
+                    {% if complaints %}
                         <ul class="list-group">
-                        {% for complaint in user.complaints.all %}
+                        {% for complaint in complaints %}
                             <li class="list-group-item">
-                                <strong>{{ complaint.title }}</strong> - {{ complaint.status }}
+                                <strong>{{ complaint.title }}</strong>
+                                <span class="badge 
+                                    {% if complaint.status == 'approved' %}bg-success{% elif complaint.status == 'rejected' %}bg-danger{% else %}bg-warning{% endif %}">
+                                    {{ complaint.status|capfirst }}
+                                </span>
                                 <p>{{ complaint.description }}</p>
                                 <small class="text-muted">Created at: {{ complaint.created_at }}</small>
                             </li>

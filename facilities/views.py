@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required, user_passes_test
 from django.contrib import messages
 from .models import Facility, Booking, Course, Event, LibraryResource, CareerService, SupportService, ExtracurricularActivity, Alumni, TransportFacility
 from .forms import BookingForm
@@ -30,28 +30,57 @@ def facility_list(request):
 
 @login_required
 def book_facility(request, facility_id):
-    facility = Facility.objects.get(id=facility_id)
+    facility = get_object_or_404(Facility, id=facility_id)
+    
     if request.method == 'POST':
         form = BookingForm(request.POST)
         if form.is_valid():
-            booking = form.save(commit=False)
-            booking.facility = facility
-            booking.user = request.user
-            booking.save()
-            messages.success(request, 'Booking request submitted successfully!')
-            return redirect('facilities:list')
+            start_time = form.cleaned_data['start_time']
+            end_time = form.cleaned_data['end_time']
+            if facility.is_available_for_booking(start_time, end_time):
+                booking = form.save(commit=False)
+                booking.user = request.user
+                booking.status = 'pending'  # Set initial status to pending
+                booking.save()
+                return redirect('facilities:my_bookings')  # Redirect to user's bookings
+            else:
+                messages.error(request, 'The facility is not available for the selected time.')
     else:
-        form = BookingForm()
-    return render(request, 'facilities/book_facility.html', {
-        'form': form,
-        'facility': facility
-    })
+        form = BookingForm(initial={'facility': facility})
 
-# Add this missing view function
+    return render(request, 'facilities/book_facility.html', {'form': form, 'facility': facility})
+
+@login_required
+@permission_required('facilities.can_manage_facilities')
+def approve_booking(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id)
+    if request.method == 'POST':
+        booking.status = 'approved'
+        booking.save()
+        messages.success(request, 'Booking approved successfully!')
+        return redirect('facilities:my_bookings')
+    return render(request, 'facilities/approve_booking.html', {'booking': booking})
+
+@login_required
+def reject_booking(request, booking_id):
+    booking = get_object_or_404(Booking, id=booking_id)
+    if request.method == 'POST':
+        booking.status = 'rejected'
+        booking.admin_comments = request.POST.get('admin_comments', '')
+        booking.save()
+        messages.success(request, 'Booking rejected successfully!')
+        return redirect('facilities:my_bookings')
+    return render(request, 'facilities/reject_booking.html', {'booking': booking})
+
 @login_required
 def my_bookings(request):
     bookings = Booking.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'facilities/my_bookings.html', {'bookings': bookings})
+
+@login_required
+def admin_bookings(request):
+    bookings = Booking.objects.all().order_by('-created_at')
+    return render(request, 'facilities/admin_bookings.html', {'bookings': bookings})
 
 @login_required
 def course_list(request):
@@ -97,3 +126,13 @@ def transport_facilities(request):
 def event_detail(request, event_id):
     event = get_object_or_404(Event, id=event_id)
     return render(request, 'facilities/event_detail.html', {'event': event})
+
+# Check if the user is an admin
+def is_admin(user):
+    return user.role == 'admin'  # Adjust this based on your user model
+
+@login_required
+@user_passes_test(is_admin)
+def pending_bookings(request):
+    bookings = Booking.objects.filter(status='pending')
+    return render(request, 'facilities/pending_bookings.html', {'bookings': bookings})

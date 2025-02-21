@@ -71,4 +71,15 @@
         </div>
     </div>
 </div>
+
+<h3>Approved Bookings</h3>
+<ul>
+    {% for booking in user_bookings %}
+                        <li class="list-group-item">
+                            {{ booking.facility.name }} - {{ booking.start_time|date }}
+                            <span class="badge bg-{{ booking.status }}">{{ booking.status }}</span>
+                        </li>
+    {% endfor %}
+</ul>
+
 {% endblock %}

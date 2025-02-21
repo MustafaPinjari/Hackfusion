@@ -4,11 +4,18 @@ from accounts.models import User
 from django.core.exceptions import ValidationError
 
 class Complaint(models.Model):
-    title = models.CharField(max_length=200)
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('in_progress', 'In Progress'),
+        ('resolved', 'Resolved'),
+        ('rejected', 'Rejected'),
+    ]
+
+    title = models.CharField(max_length=255)
     description = models.TextField()
     is_anonymous = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    status = models.CharField(choices=[('pending', 'Pending'), ('in_progress', 'In Progress'), ('resolved', 'Resolved'), ('rejected', 'Rejected')], default='pending', max_length=20)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, null=True)
     
 
@@ -19,9 +26,11 @@ class Complaint(models.Model):
         return "Anonymous" if self.is_anonymous else self.user.get_full_name()
 
     def clean(self):
-        # Ensure a user is assigned if the complaint is resolved
-        if self.status == 'resolved' and not self.user:
-            raise ValidationError("A user must be assigned to resolve the complaint.")
+        # Only validate if the complaint is being created (not updated)
+        if not self.pk:  # New complaint
+            if self.status == 'resolved' and not self.user:
+                raise ValidationError("A user must be assigned to resolve the complaint.")
+        # Allow existing complaints to be updated without requiring a user
 
 class ComplaintResponse(models.Model):
     complaint = models.ForeignKey(Complaint, on_delete=models.CASCADE)

@@ -7,7 +7,8 @@ from utils.notifications import send_complaint_notification
 
 @login_required
 def complaint_list(request):
-    complaints = Complaint.objects.all().order_by('-created_at')
+    # Fetch complaints for the logged-in user
+    complaints = Complaint.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'complaints/complaint_list.html', {'complaints': complaints})
 
 @login_required
@@ -37,10 +38,12 @@ def create_complaint(request):
         form = ComplaintForm(request.POST)
         if form.is_valid():
             complaint = form.save(commit=False)
-            complaint.user = request.user
+            # Set the user only if the complaint is not anonymous
+            if not form.cleaned_data['is_anonymous']:
+                complaint.user = request.user
             complaint.save()
             messages.success(request, 'Your complaint has been submitted successfully!')
-            return redirect('complaints:list')
+            return redirect('accounts:profile')
     else:
         form = ComplaintForm()
     return render(request, 'complaints/create_complaint.html', {'form': form})

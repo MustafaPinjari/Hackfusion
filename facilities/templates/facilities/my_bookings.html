@@ -20,6 +20,15 @@
                     <strong>Status:</strong> 
                     <span class="badge bg-{{ booking.status }}">{{ booking.get_status_display }}</span>
                 </p>
+                {% if booking.status == 'approved' %}
+                    <p class="text-success">Your booking has been approved!</p>
+                {% endif %}
+                {% if booking.status == 'pending' %}
+                    {% if request.user.role == 'admin' %}
+                        <a href="{% url 'facilities:approve_booking' booking.id %}" class="btn btn-success">Approve</a>
+                        <a href="{% url 'facilities:reject_booking' booking.id %}" class="btn btn-danger">Reject</a>
+                    {% endif %}
+                {% endif %}
             </div>
             <div class="card-footer text-muted">
                 Booked on: {{ booking.created_at|date:"F d, Y" }}

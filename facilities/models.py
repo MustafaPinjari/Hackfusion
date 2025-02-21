@@ -2,13 +2,21 @@ from django.db import models
 from accounts.models import User
 
 class Facility(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     description = models.TextField()
     capacity = models.IntegerField()
     image = models.ImageField(upload_to='facilities/', null=True, blank=True)
+    is_available = models.BooleanField(default=True)
 
     def __str__(self):
         return self.name
+
+    def is_available_for_booking(self, start_time, end_time):
+        bookings = Booking.objects.filter(facility=self, status='approved')
+        for booking in bookings:
+            if (start_time < booking.end_time and end_time > booking.start_time):
+                return False
+        return self.is_available
 
 class Booking(models.Model):
     STATUS_CHOICES = [
@@ -24,6 +32,10 @@ class Booking(models.Model):
     purpose = models.TextField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
+    admin_comments = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user} - {self.facility} ({self.status})"
 
 class Course(models.Model):
     title = models.CharField(max_length=200)

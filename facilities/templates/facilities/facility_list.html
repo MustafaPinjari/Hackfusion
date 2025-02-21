@@ -29,7 +29,23 @@
                     <h5 class="card-title">{{ facility.name }}</h5>
                     <p class="card-text">{{ facility.description }}</p>
                     <p>Capacity: {{ facility.capacity }} people</p>
-                    <a href="{% url 'facilities:book' facility.id %}" class="btn btn-primary">Book Now</a>
+                    
+                    {% with user_bookings=user.bookings.all %}
+                        {% if user_bookings %}
+                            {% for booking in user_bookings %}
+                                {% if booking.facility == facility %}
+                                    {% if booking.status == 'approved' %}
+                                        <p class="text-success">&#10004; Approved</p>  <!-- Tick mark for approved -->
+                                    {% else %}
+                                        <p class="text-warning">Pending Approval</p>
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        {% else %}
+                            <p class="text-success">Available for booking</p>
+                            <a href="{% url 'facilities:book' facility.id %}" class="btn btn-primary">Book Now</a>
+                        {% endif %}
+                    {% endwith %}
                 </div>
             </div>
         </div>

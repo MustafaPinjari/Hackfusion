@@ -15,3 +15,13 @@ class UserUpdateForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['username', 'email', 'role', 'department', 'phone']
+
+class HealthRequestForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['health_requests']  # Assuming health_requests is a text field
+
+class LeaveRequestForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['leave_requests']  # Assuming leave_requests is a text field
