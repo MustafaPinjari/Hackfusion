@@ -4,6 +4,9 @@ from django.contrib import messages
 from django.utils import timezone
 from .models import Election, Nomination, Vote
 from .forms import NominationForm, NominationAdminForm, ElectionForm
+import logging
+
+logger = logging.getLogger(__name__)
 
 @login_required
 def election_list(request):
@@ -23,11 +26,20 @@ def election_detail(request, pk):
     user_nomination = Nomination.objects.filter(election=election, user=request.user).first()
     nominations = Nomination.objects.filter(election=election, status='approved')
     
+    # Get the vote count for each nomination
+    for nomination in nominations:
+        nomination.vote_count = Vote.objects.filter(candidate=nomination).count()
+
+    can_nominate = election.is_nomination_open() and not user_nomination
+    
+    # Debugging output
+    logger.debug(f"Election: {election.title}, User Nomination: {user_nomination}, Can Nominate: {can_nominate}")
+
     context = {
         'election': election,
         'user_nomination': user_nomination,
         'nominations': nominations,
-        'can_nominate': election.is_nomination_open() and not user_nomination
+        'can_nominate': can_nominate
     }
     return render(request, 'elections/election_detail.html', context)
 
@@ -61,25 +73,18 @@ def register_candidate(request, election_id):
     })
 
 @login_required
-def submit_vote(request, election_id, candidate_id):
+def submit_vote(request, election_id, nomination_id):
     election = get_object_or_404(Election, pk=election_id)
-    candidate = get_object_or_404(Nomination, pk=candidate_id, election=election, status='approved')
-    
-    if not election.is_active:
-        messages.error(request, "This election is not active.")
-        return redirect('elections:detail', pk=election_id)
-    
+    nomination = get_object_or_404(Nomination, pk=nomination_id)
+
+    # Check if the user has already voted in this election
     if Vote.objects.filter(election=election, user=request.user).exists():
         messages.error(request, "You have already voted in this election.")
         return redirect('elections:detail', pk=election_id)
-    
-    Vote.objects.create(
-        user=request.user,
-        election=election,
-        candidate=candidate
-    )
-    
-    messages.success(request, "Your vote has been recorded successfully!")
+
+    # Create a new vote
+    Vote.objects.create(election=election, user=request.user, candidate=nomination)
+    messages.success(request, "Your vote has been submitted successfully!")
     return redirect('elections:detail', pk=election_id)
 
 @user_passes_test(lambda u: u.is_staff)
@@ -140,6 +145,8 @@ def submit_nomination(request, election_id):
             nomination.save()
             messages.success(request, "Your nomination has been submitted successfully!")
             return redirect('elections:detail', pk=election_id)
+        else:
+            logger.debug(f"Form errors: {form.errors}")
     else:
         form = NominationForm()
     

@@ -23,8 +23,7 @@ class Election(models.Model):
         return self.title
     
     def is_nomination_open(self):
-        now = timezone.now()
-        return now <= self.nomination_end_date
+        return timezone.now() < self.nomination_end_date
 
 class Nomination(models.Model):
     STATUS_CHOICES = (
@@ -33,11 +32,11 @@ class Nomination(models.Model):
         ('rejected', 'Rejected')
     )
     
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey('accounts.User', on_delete=models.CASCADE)
     election = models.ForeignKey(Election, on_delete=models.CASCADE)
-    manifesto = models.TextField(help_text="Describe your election agenda and why students should vote for you")
-    experience = models.TextField(help_text="Describe your relevant experience")
-    achievements = models.TextField(help_text="List your achievements")
+    manifesto = models.TextField()
+    experience = models.TextField(blank=True)
+    achievements = models.TextField(blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     created_at = models.DateTimeField(auto_now_add=True)
     admin_remarks = models.TextField(blank=True, null=True)
@@ -46,10 +45,10 @@ class Nomination(models.Model):
         unique_together = ('user', 'election')
 
 class Vote(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     election = models.ForeignKey(Election, on_delete=models.CASCADE)
-    candidate = models.ForeignKey('Nomination', on_delete=models.CASCADE)
-    created_at = models.DateTimeField(default=timezone.now)
+    candidate = models.ForeignKey(Nomination, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
         unique_together = ('user', 'election')

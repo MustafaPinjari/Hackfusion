@@ -34,6 +34,10 @@
                 </a>
             </div>
         </div>
+    {% else %}
+        <div class="alert alert-warning">
+            <p>You are not eligible to apply for this election.</p>
+        </div>
     {% endif %}
 
     <div class="card">
@@ -48,6 +52,8 @@
                         {% if nomination.experience %}
                             <small class="text-muted">Experience: {{ nomination.experience }}</small>
                         {% endif %}
+                        <p class="text-muted">Votes: {{ nomination.vote_count }}</p>
+                        <a href="{% url 'elections:vote' election.id nomination.id %}" class="btn btn-success btn-sm">Vote</a>
                     </div>
                 {% endfor %}
                 </div>
