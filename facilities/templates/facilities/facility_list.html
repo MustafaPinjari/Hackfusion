@@ -3,24 +3,41 @@
 {% block title %}Facilities{% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-12">
-        <h2>Available Facilities</h2>
+<div class="container">
+    <h2 class="text-center mb-4">Available Facilities</h2>
+    
+    <div class="mb-3 text-center">
+        <a href="{% url 'facilities:course_list' %}" class="btn btn-primary mx-2">Courses</a>
+        <a href="{% url 'facilities:event_list' %}" class="btn btn-primary mx-2">Upcoming Events</a>
+        <a href="{% url 'facilities:library_resources' %}" class="btn btn-primary mx-2">Library Resources</a>
+        <a href="{% url 'facilities:career_services' %}" class="btn btn-primary mx-2">Career Services</a>
+        <a href="{% url 'facilities:support_services' %}" class="btn btn-primary mx-2">Support Services</a>
+        <a href="{% url 'facilities:extracurricular_activities' %}" class="btn btn-primary mx-2">Extracurricular Activities</a>
+        <a href="{% url 'facilities:alumni_network' %}" class="btn btn-primary mx-2">Alumni Network</a>
+        <a href="{% url 'facilities:transport_facilities' %}" class="btn btn-primary mx-2">Transport Facilities</a>
     </div>
-    {% for facility in facilities %}
-    <div class="col-md-4 mb-4">
-        <div class="card">
-            {% if facility.image %}
-            <img src="{{ facility.image.url }}" class="card-img-top" alt="{{ facility.name }}">
-            {% endif %}
-            <div class="card-body">
-                <h5 class="card-title">{{ facility.name }}</h5>
-                <p class="card-text">{{ facility.description }}</p>
-                <p>Capacity: {{ facility.capacity }} people</p>
-                <a href="{% url 'facilities:book' facility.id %}" class="btn btn-primary">Book Now</a>
+
+    <h3>Facilities</h3>
+    <div class="row">
+        {% for facility in facilities %}
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm">
+                {% if facility.image %}
+                <img src="{{ facility.image.url }}" class="card-img-top" alt="{{ facility.name }}">
+                {% endif %}
+                <div class="card-body">
+                    <h5 class="card-title">{{ facility.name }}</h5>
+                    <p class="card-text">{{ facility.description }}</p>
+                    <p>Capacity: {{ facility.capacity }} people</p>
+                    <a href="{% url 'facilities:book' facility.id %}" class="btn btn-primary">Book Now</a>
+                </div>
             </div>
         </div>
+        {% empty %}
+        <div class="col-12">
+            <p>No facilities available.</p>
+        </div>
+        {% endfor %}
     </div>
-    {% endfor %}
 </div>
 {% endblock %}

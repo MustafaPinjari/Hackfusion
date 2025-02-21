@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block title %}Event Details{% endblock %}
+
+{% block content %}
+<h2>{{ event.title }}</h2>
+<p><strong>Date:</strong> {{ event.date }}</p>
+<p><strong>Sponsored by:</strong> {{ event.sponsor }}</p>
+<p><strong>Budget:</strong> ${{ event.budget }}</p>
+<p><strong>Expenses:</strong> ${{ event.expenses }}</p>
+<p><strong>Description:</strong> {{ event.description }}</p>
+<a href="{% url 'facilities:event_list' %}" class="btn btn-secondary">Back to Events</a>
+{% endblock %}

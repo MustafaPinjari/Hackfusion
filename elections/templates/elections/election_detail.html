@@ -53,7 +53,11 @@
                             <small class="text-muted">Experience: {{ nomination.experience }}</small>
                         {% endif %}
                         <p class="text-muted">Votes: {{ nomination.vote_count }}</p>
-                        <a href="{% url 'elections:vote' election.id nomination.id %}" class="btn btn-success btn-sm">Vote</a>
+                        {% if not user_has_voted %}
+                            <a href="{% url 'elections:vote' election.id nomination.id %}" class="btn btn-success btn-sm">Vote</a>
+                        {% else %}
+                            <p>You have already voted in this election.</p>
+                        {% endif %}
                     </div>
                 {% endfor %}
                 </div>

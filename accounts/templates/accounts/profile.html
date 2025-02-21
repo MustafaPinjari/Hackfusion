@@ -94,23 +94,41 @@
                     </form>
                 </div>
             </div>
-            
-            <div class="card">
+
+            <!-- Complaints Section -->
+            <div class="card mb-4">
                 <div class="card-body">
-                    <h4>Recent Activities</h4>
-                    {% if recent_activities %}
-                        <div class="list-group">
-                        {% for activity in recent_activities %}
-                            <div class="list-group-item">
-                                {{ activity }}
-                                <small class="text-muted float-end">
-                                    {{ activity.created_at|timesince }} ago
-                                </small>
-                            </div>
-                        {% endfor %}
+                    <h4>My Complaints</h4>
+                    <form method="post" action="{% url 'complaints:submit_complaint' %}">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Title</label>
+                            <input type="text" class="form-control" id="title" name="title" required>
                         </div>
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input type="checkbox" class="form-check-input" id="is_anonymous" name="is_anonymous">
+                            <label class="form-check-label" for="is_anonymous">Submit Anonymously</label>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Submit Complaint</button>
+                    </form>
+
+                    <h5 class="mt-4">Recent Complaints</h5>
+                    {% if user.complaints.all %}
+                        <ul class="list-group">
+                        {% for complaint in user.complaints.all %}
+                            <li class="list-group-item">
+                                <strong>{{ complaint.title }}</strong> - {{ complaint.status }}
+                                <p>{{ complaint.description }}</p>
+                                <small class="text-muted">Created at: {{ complaint.created_at }}</small>
+                            </li>
+                        {% endfor %}
+                        </ul>
                     {% else %}
-                        <p>No recent activities</p>
+                        <p>No complaints submitted yet.</p>
                     {% endif %}
                 </div>
             </div>

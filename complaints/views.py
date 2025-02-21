@@ -53,3 +53,17 @@ def complaint_detail(request, pk):
         'complaint': complaint,
         'responses': responses
     })
+
+@login_required
+def submit_complaint(request):
+    if request.method == 'POST':
+        form = ComplaintForm(request.POST)
+        if form.is_valid():
+            complaint = form.save(commit=False)
+            # Only set the user if the complaint is not anonymous
+            if not form.cleaned_data['is_anonymous']:
+                complaint.user = request.user
+            complaint.save()
+            messages.success(request, 'Your complaint has been submitted successfully!')
+            return redirect('accounts:profile')
+    return redirect('accounts:profile')

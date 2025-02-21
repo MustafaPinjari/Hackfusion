@@ -45,8 +45,9 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'your-email@gmail.com'
-EMAIL_HOST_USER_PASSWORD = 'your-password'
+EMAIL_HOST_USER = 'hariomvimal33333@gmail.com'
+EMAIL_HOST_PASSWORD = 'kasc exvy fkib pusw'
+DEFAULT_FROM_EMAIL = 'hariomvimal33333@gmail.com'
 
 # Media files
 MEDIA_URL = '/media/'
@@ -151,3 +152,22 @@ AUTH_USER_MODEL = 'accounts.User'
 # Crispy Forms Settings
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap4"
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'file': {
+            'level': 'ERROR',
+            'class': 'logging.FileHandler',
+            'filename': 'error.log',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'ERROR',
+            'propagate': True,
+        },
+    },
+}

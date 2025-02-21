@@ -21,11 +21,14 @@ def election_list(request):
     })
 
 @login_required
-def election_detail(request, pk):
-    election = get_object_or_404(Election, pk=pk)
+def election_detail(request, election_id):
+    election = get_object_or_404(Election, pk=election_id)
     user_nomination = Nomination.objects.filter(election=election, user=request.user).first()
     nominations = Nomination.objects.filter(election=election, status='approved')
     
+    # Check if the user has already voted
+    user_has_voted = Vote.objects.filter(user=request.user, election=election).exists()
+
     # Get the vote count for each nomination
     for nomination in nominations:
         nomination.vote_count = Vote.objects.filter(candidate=nomination).count()
@@ -39,7 +42,8 @@ def election_detail(request, pk):
         'election': election,
         'user_nomination': user_nomination,
         'nominations': nominations,
-        'can_nominate': can_nominate
+        'can_nominate': can_nominate,
+        'user_has_voted': user_has_voted
     }
     return render(request, 'elections/election_detail.html', context)
 
@@ -49,11 +53,11 @@ def register_candidate(request, election_id):
     
     if not election.is_nomination_open():
         messages.error(request, "Nominations are closed for this election.")
-        return redirect('elections:detail', pk=election_id)
+        return redirect('elections:detail', election_id=election_id)
     
     if Nomination.objects.filter(election=election, user=request.user).exists():
         messages.error(request, "You have already submitted a nomination for this election.")
-        return redirect('elections:detail', pk=election_id)
+        return redirect('elections:detail', election_id=election_id)
     
     if request.method == 'POST':
         form = NominationForm(request.POST)
@@ -63,7 +67,7 @@ def register_candidate(request, election_id):
             nomination.election = election
             nomination.save()
             messages.success(request, "Your nomination has been submitted successfully!")
-            return redirect('elections:detail', pk=election_id)
+            return redirect('elections:detail', election_id=election_id)
     else:
         form = NominationForm()
     
@@ -78,14 +82,14 @@ def submit_vote(request, election_id, nomination_id):
     nomination = get_object_or_404(Nomination, pk=nomination_id)
 
     # Check if the user has already voted in this election
-    if Vote.objects.filter(election=election, user=request.user).exists():
-        messages.error(request, "You have already voted in this election.")
-        return redirect('elections:detail', pk=election_id)
+    if Vote.objects.filter(user=request.user, election=election).exists():
+        messages.error(request, "You have already voted in this election and cannot change your vote.")
+        return redirect('elections:election_detail', election_id=election_id)
 
     # Create a new vote
-    Vote.objects.create(election=election, user=request.user, candidate=nomination)
-    messages.success(request, "Your vote has been submitted successfully!")
-    return redirect('elections:detail', pk=election_id)
+    Vote.objects.create(user=request.user, election=election, candidate=nomination)
+    messages.success(request, "Your vote has been recorded successfully!")
+    return redirect('elections:election_detail', election_id=election_id)
 
 @user_passes_test(lambda u: u.is_staff)
 def edit_election(request, election_id):
@@ -208,3 +212,17 @@ def election_create(request):
         'form': form,
         'title': 'Create Election'
     })
+
+def vote(request, election_id, nomination_id):
+    election = get_object_or_404(Election, pk=election_id)
+    nomination = get_object_or_404(Nomination, pk=nomination_id)
+
+    # Check if the user has already voted in this election
+    if Vote.objects.filter(user=request.user, election=election).exists():
+        messages.error(request, "You have already voted in this election and cannot change your vote.")
+        return redirect('elections:election_detail', election_id=election_id)
+
+    # Create a new vote
+    Vote.objects.create(user=request.user, election=election, candidate=nomination)
+    messages.success(request, "Your vote has been recorded successfully!")
+    return redirect('elections:election_detail', election_id=election_id)
